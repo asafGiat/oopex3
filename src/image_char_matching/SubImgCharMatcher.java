@@ -44,6 +44,12 @@ public class SubImgCharMatcher {
     public char getCharByImageBrightness(double brightness){
         Map.Entry<Double, TreeSet<Character>> entryCeiling = normalizedCharMap.ceilingEntry(brightness);
         Map.Entry<Double, TreeSet<Character>> entryFloor = normalizedCharMap.floorEntry(brightness);
+        if (entryFloor==null){
+            return entryCeiling.getValue().first();
+        }
+        if (entryCeiling==null){
+            return entryFloor.getValue().first();
+        }
         if (brightness-entryFloor.getKey() <= entryCeiling.getKey()-brightness) {
             return entryFloor.getValue().first();
         }else {
@@ -140,21 +146,4 @@ public class SubImgCharMatcher {
         this.normalizedCharMap = newNormalizedMap;
     }
 
-    public static void main(String[] args) {
-        char[] charset = {'A', 'B', 'C', 'D', 'E'};
-        SubImgCharMatcher matcher = new SubImgCharMatcher(charset);
-        // הדפסת המפה לנראות
-                matcher.removeChar('C');
-        System.out.println("After removing 'C':");
-        for (Map.Entry<Double, TreeSet<Character>> entry : matcher.normalizedCharMap.entrySet()) {
-            System.out.println("Brightness: " + entry.getKey() + " Characters: " + entry.getValue());
-        }
-        System.out.println(matcher.getCharByImageBrightness(0.7));
-        matcher.addChar('C');
-        System.out.println("After adding 'C':");
-        for (Map.Entry<Double, TreeSet<Character>> entry : matcher.normalizedCharMap.entrySet()) {
-            System.out.println("Brightness: " + entry.getKey() + " Characters: " + entry.getValue());
-        }
-        System.out.println(matcher.getCharByImageBrightness(0.7));
-    }
 }
