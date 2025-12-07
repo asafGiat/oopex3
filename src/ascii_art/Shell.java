@@ -1,11 +1,17 @@
 package ascii_art;
 
+import image.Image;
+import image_char_matching.CharConverter;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
 public class Shell {
+    private Image image;
+
     private final Map<String, Function<String, String>> commandMap = new HashMap<>() {{
         put("chars", Shell.this::handleChars);
         put("add", Shell.this::handleAdd);
@@ -37,7 +43,9 @@ public class Shell {
     public static void main(String[] args) {
     }
 
-    public void run(String imageName) {
+    public void run(String imageName) throws IOException {
+        Image image = new Image(imageName);
+        CharConverter converter = new CharConverter();
         System.out.print(">>> ");
         String command = KeyboardInput.readLine();
         while (!command.startsWith("exit")) {

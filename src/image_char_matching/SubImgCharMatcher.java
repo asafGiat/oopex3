@@ -6,7 +6,7 @@ import java.util.*;
  * It allows adding and removing characters, and retrieves the best matching character for a given
  * brightness.
  */
-class SubImgCharMatcher {
+public class SubImgCharMatcher {
 
     private final HashMap<Character, Double> brightness;
     private TreeMap<Double, TreeSet<Character>> normalizedCharMap;
