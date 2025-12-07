@@ -10,6 +10,10 @@ import java.awt.*;
  */
 public class ImageBrightnessCalculator {
 
+    private static final double RED_WEIGHT = 0.2126;
+    private static final double GREEN_WEIGHT = 0.7152;
+    private static final double BLUE_WEIGHT = 0.0722;
+
     /**
      * Private constructor to prevent instantiation of this utility class.
      */
@@ -53,8 +57,6 @@ public class ImageBrightnessCalculator {
      * @return The grayscale value (0-255)
      */
     private static int calculateGrayscale(Color color) {
-        return (int) (color.getRed() * 0.2126 + color.getGreen() * 0.7152  + color.getBlue() * 0.0722);
-
+        return (int) (color.getRed() * RED_WEIGHT + color.getGreen() * GREEN_WEIGHT  + color.getBlue() * BLUE_WEIGHT);
     }
 }
-
