@@ -11,7 +11,22 @@ public class Shell {
         put("add", Shell.this::handleAdd);
         put("remove", Shell.this::handleRemove);
         put("res", Shell.this::handleRes);
+        put("reverse", Shell.this::handleReverse);
+        put("output", Shell.this::handleOutput);
+        put("asciiArt" , Shell.this::handleAsciiArt);
     }};
+
+    private String handleAsciiArt(String s) {
+        return "null";
+    }
+
+    private String handleOutput(String s) {
+        return "null";
+    }
+
+    private String handleReverse(String s) {
+        return "null";
+    }
 
     public Shell() {
     }
@@ -55,14 +70,12 @@ public class Shell {
 
     private String handleAdd(String command) {
         //todo: add char to chars list
-        Set charsSet = getCharsSetFromCommand(command);
-        add(command);
+        Set<Character> charsSet = getCharsSetFromCommand(command);
         return "added char...(placeholder)";
     }
 
     private String handleRemove(String command) {
-        Set charsSet = getCharsSetFromCommand(command);
-        remove(command);
+        Set<Character> charsSet = getCharsSetFromCommand(command);
         return "removed char...(placeholder)";
     }
 
@@ -70,17 +83,7 @@ public class Shell {
         //todo: implement resolution handling
         throw new UnsupportedOperationException("Not implemented yet");
     }
-
-    private void remove(String command) {
-        Set charsSet = getCharsSetFromCommand(command);
-        return;
-    }
-
-    private void add(String command) {
-        Set charsSet = getCharsSetFromCommand(command);
-        return;
-    }
-    private Set getCharsSetFromCommand(String command) {
+    private Set<Character> getCharsSetFromCommand(String command) {
         //todo: implement
         return null;
     }
