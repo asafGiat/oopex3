@@ -9,29 +9,95 @@ import java.util.Set;
 import java.util.function.Function;
 
 public class Shell {
+    // Command names
+    private static final String CMD_CHARS = "chars";
+    private static final String CMD_ADD = "add";
+    private static final String CMD_REMOVE = "remove";
+    private static final String CMD_RES = "res";
+    private static final String CMD_REVERSE = "reverse";
+    private static final String CMD_OUTPUT = "output";
+    private static final String CMD_ASCII_ART = "asciiArt";
+    private static final String CMD_EXIT = "exit";
+
+    // Command arguments
+    private static final String ARG_UP = "up";
+    private static final String ARG_DOWN = "down";
+    private static final String ARG_ALL = "all";
+    private static final String ARG_SPACE = "space";
+
+    // Special characters
+    private static final char RANGE_SEPARATOR = '-';
+    private static final char SPACE_CHAR = ' ';
+    private static final char TILDE_CHAR = '~';
+    private static final char PRINTABLE_ASCII_START = ' ';
+    private static final char PRINTABLE_ASCII_END = '~';
+
+    // Numbers
+    private static final int RESOLUTION_MULTIPLIER = 2;
+    private static final int MIN_COMMAND_PARTS = 2;
+    private static final int RANGE_FORMAT_LENGTH = 3;
+    private static final int RANGE_SEPARATOR_INDEX = 1;
+    private static final int RANGE_START_INDEX = 0;
+    private static final int RANGE_END_INDEX = 2;
+    private static final int SINGLE_CHAR_LENGTH = 1;
+    private static final int COMMAND_ARG_INDEX = 1;
+
+    // Messages
+    private static final String MSG_INSUFFICIENT_CHARS = "Did not execute. Charset is too small.";
+    private static final String MSG_OUTPUT_FORMAT_ERROR = "Did not change output method due to incorrect format.";
+    private static final String MSG_CHARS_ADDED = "Characters added successfully";
+    private static final String MSG_CHARS_REMOVED = "Characters removed successfully";
+    private static final String MSG_RESOLUTION_SET = "Resolution set to ";
+    private static final String MSG_RESOLUTION_BOUNDS_ERROR = "Did not change resolution due to exceeding boundaries.";
+    private static final String MSG_INCORRECT_COMMAND = "Did not execute due to incorrect command.";
+    private static final String MSG_ERROR_PREFIX = "Error: ";
+    private static final String MSG_INVALID_ARG_FORMAT = "Invalid argument format: ";
+    private static final String MSG_INVALID_CMD_FORMAT = "Invalid command format: missing argument";
+    private static final String MSG_SHELL_IO_ERROR = "Failed to run shell due to IO error: ";
+    private static final String MSG_PROMPT = ">>> ";
+    private static final String MSG_EMPTY = "";
+
+    // Formatting
+    private static final String SPACE_SEPARATOR = " ";
+    private static final String WHITESPACE_REGEX = "\\s+";
+
     private Image image;
 
     private final Map<String, Function<String, String>> commandMap = new HashMap<>() {{
-        put("chars", Shell.this::handleChars);
-        put("add", Shell.this::handleAdd);
-        put("remove", Shell.this::handleRemove);
-        put("res", Shell.this::handleRes);
-        put("reverse", Shell.this::handleReverse);
-        put("output", Shell.this::handleOutput);
-        put("asciiArt" , Shell.this::handleAsciiArt);
+        put(CMD_CHARS, Shell.this::handleChars);
+        put(CMD_ADD, Shell.this::handleAdd);
+        put(CMD_REMOVE, Shell.this::handleRemove);
+        put(CMD_RES, Shell.this::handleRes);
+        put(CMD_REVERSE, Shell.this::handleReverse);
+        put(CMD_OUTPUT, Shell.this::handleOutput);
+        put(CMD_ASCII_ART, Shell.this::handleAsciiArt);
     }};
     private ProgramRun run;
 
     private String handleAsciiArt(String s) {
-        return "null";
+        try {
+            run.run();
+            return MSG_EMPTY;
+        }
+        catch (InsufficientCharsException e) {
+            return MSG_INSUFFICIENT_CHARS;
+        }
     }
 
-    private String handleOutput(String s) {
-        return "null";
+    private String handleOutput(String command) {
+        try {
+            String[] parts = parseCommand(command);
+            String outputType = parts[COMMAND_ARG_INDEX];
+            run.setAsciiOutput(outputType);
+        } catch (InvalidCommandException e) {
+            return MSG_OUTPUT_FORMAT_ERROR;
+        }
+        return MSG_EMPTY;
     }
 
     private String handleReverse(String s) {
-        return "null";
+        run.toggleReverse();
+        return MSG_EMPTY;
     }
 
     public Shell() {
@@ -41,21 +107,24 @@ public class Shell {
     }
 
     public static void main(String[] args) {
+        Shell shell = new Shell();
+        try {
+            shell.run("/C://Users//asaf//Pictures//images.jpeg/");
+        } catch (IOException e) {
+            System.out.println(MSG_SHELL_IO_ERROR + e.getMessage());
+        }
     }
 
     public void run(String imageName) throws IOException {
         this.run = new ProgramRun(imageName);
-        System.out.print(">>> ");
+        System.out.print(MSG_PROMPT);
         String command = KeyboardInput.readLine();
-        while (!command.startsWith("exit")) {
-            try {
-                String response = new String(handleCommand(command));
+        while (!command.startsWith(CMD_EXIT)) {
+            String response = new String(handleCommand(command));
+            if(!response.isEmpty()) {
                 System.out.println(response);
             }
-            catch (Exception e) {
-                System.out.println("Unsupported command.");
-            }
-            System.out.print(">>> ");
+            System.out.print(MSG_PROMPT);
             command = KeyboardInput.readLine();
         }
 
@@ -63,11 +132,11 @@ public class Shell {
 
     private String handleCommand(String command) {
         for (Map.Entry<String, Function<String, String>> entry : commandMap.entrySet()) {
-            if (command.startsWith(entry.getKey())) {
+            if (command.equals(entry.getKey()) || command.startsWith(entry.getKey()+SPACE_SEPARATOR)) {
                 return entry.getValue().apply(command);
             }
         }
-        throw new UnsupportedOperationException("Not implemented yet");
+        return MSG_INCORRECT_COMMAND;
     }
 
     private String handleChars(String command) {
@@ -81,7 +150,7 @@ public class Shell {
         boolean first = true;
         for (Character c : sortedChars) {
             if (!first) {
-                result.append(" ");
+                result.append(SPACE_SEPARATOR);
             }
             result.append(c);
             first = false;
@@ -96,9 +165,9 @@ public class Shell {
             for (char c : charsSet) {
                 run.addChar(c);
             }
-            return "Characters added successfully";
+            return MSG_CHARS_ADDED;
         } catch (InvalidCommandException e) {
-            return "Error: " + e.getMessage();
+            return MSG_ERROR_PREFIX + e.getMessage();
             //throw proper exception;
         }
     }
@@ -109,16 +178,16 @@ public class Shell {
             for (char c : charsSet) {
                 run.removeChar(c);
             }
-            return "Characters removed successfully";
+            return MSG_CHARS_REMOVED;
         } catch (InvalidCommandException e) {
-            return "Error: " + e.getMessage();
+            return MSG_ERROR_PREFIX + e.getMessage();
             //throw proper exception;
         }
     }
 
     private String handleRes(String command) {
         int currentRes = run.getResolution();
-        final String message = "Resolution set to ";
+        final String message = MSG_RESOLUTION_SET;
         String[] parts = null;
         try{
             parts = parseCommand(command);
@@ -126,10 +195,10 @@ public class Shell {
             return message + Integer.toString(currentRes);
         }
         try {
-            if (parts[1].equals("up")) {
-                run.setResolution(currentRes * 2);
-            } else if (parts[1].equals("down")) {
-                run.setResolution(currentRes / 2);
+            if (parts[COMMAND_ARG_INDEX].equals(ARG_UP)) {
+                run.setResolution(currentRes * RESOLUTION_MULTIPLIER);
+            } else if (parts[COMMAND_ARG_INDEX].equals(ARG_DOWN)) {
+                run.setResolution(currentRes / RESOLUTION_MULTIPLIER);
             } else {
                 throw new UnsupportedOperationException("Not implemented yet");
             }
@@ -137,7 +206,7 @@ public class Shell {
         }
         catch (ResolutionOutOfBoundsException e)
         {
-            return "Did not change resolution due to exceeding boundaries.";
+            return MSG_RESOLUTION_BOUNDS_ERROR;
         }
     }
 
@@ -149,10 +218,10 @@ public class Shell {
      * @throws InvalidCommandException if the command has fewer parts than required
      */
     private String[] parseCommand(String command) throws InvalidCommandException {
-        String[] parts = command.trim().split("\\s+");
+        String[] parts = command.trim().split(WHITESPACE_REGEX);
 
-        if (parts.length < 2) {
-            throw new InvalidCommandException("Invalid command format: missing argument");
+        if (parts.length < MIN_COMMAND_PARTS) {
+            throw new InvalidCommandException(MSG_INVALID_CMD_FORMAT);
         }
 
         return parts;
@@ -161,27 +230,27 @@ public class Shell {
     private Set<Character> getCharsSetFromCommand(String command) throws InvalidCommandException {
         String[] parts = parseCommand(command);
 
-        String argument = parts[1];
+        String argument = parts[COMMAND_ARG_INDEX];
         Set<Character> result = new java.util.HashSet<>();
 
         // Handle "all" keyword - all printable ASCII characters
-        if (argument.equals("all")) {
-            for (char c = ' '; c <= '~'; c++) {
+        if (argument.equals(ARG_ALL)) {
+            for (char c = PRINTABLE_ASCII_START; c <= PRINTABLE_ASCII_END; c++) {
                 result.add(c);
             }
             return result;
         }
 
         // Handle "space" keyword
-        if (argument.equals("space")) {
-            result.add(' ');
+        if (argument.equals(ARG_SPACE)) {
+            result.add(SPACE_CHAR);
             return result;
         }
 
         // Handle range format "x-y"
-        if (argument.length() == 3 && argument.charAt(1) == '-') {
-            char start = argument.charAt(0);
-            char end = argument.charAt(2);
+        if (argument.length() == RANGE_FORMAT_LENGTH && argument.charAt(RANGE_SEPARATOR_INDEX) == RANGE_SEPARATOR) {
+            char start = argument.charAt(RANGE_START_INDEX);
+            char end = argument.charAt(RANGE_END_INDEX);
 
             // Add characters in range (handle both directions)
             if (start <= end) {
@@ -197,13 +266,13 @@ public class Shell {
         }
 
         // Handle single character
-        if (argument.length() == 1) {
-            result.add(argument.charAt(0));
+        if (argument.length() == SINGLE_CHAR_LENGTH) {
+            result.add(argument.charAt(RANGE_START_INDEX));
             return result;
         }
 
         // Invalid format
-        throw new InvalidCommandException("Invalid argument format: " + argument);
+        throw new InvalidCommandException(MSG_INVALID_ARG_FORMAT + argument);
     }
 
 }

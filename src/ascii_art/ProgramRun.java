@@ -18,12 +18,33 @@ public class ProgramRun {
     private static final int DEFAULT_RESOLUTION = 2;
     private static final char[] DEFAULT_CHARSET = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
+    // Output types
+    private static final String OUTPUT_CONSOLE = "console";
+    private static final String OUTPUT_HTML = "html";
+
+    // HTML output settings
+    private static final String HTML_OUTPUT_FILE = "out.html";
+    private static final String HTML_FONT = "Courier New";
+
+    // Numbers
+    private static final int MIN_CHARSET_SIZE = 2;
+    private static final int POWER_OF_TWO_MASK_ADJUSTMENT = 1;
+    private static final int MIN_RESOLUTION_FALLBACK = 1;
+    private static final int ZERO = 0;
+
+    // Error messages
+    private static final String MSG_RESOLUTION_POWER_OF_TWO = "Resolution must be a power of 2";
+    private static final String MSG_RESOLUTION_BOUNDS_PREFIX = "Resolution must be between ";
+    private static final String MSG_RESOLUTION_BOUNDS_SEPARATOR = " and ";
+    private static final String MSG_INSUFFICIENT_CHARSET = "Cannot generate ASCII art with fewer than 2 characters in the charset";
+    private static final String MSG_INVALID_OUTPUT_TYPE = "";
+
     private final Image image;
     private int resolution;
     private final SubImgCharMatcher subImgCharMatcher;
     private AsciiOutput asciiOutput;
-    private final AsciiArtAlgorithm asciiArtAlgorithm;
     private final Set<Character> currentCharset;
+    private boolean isReversed;
 
     /**
      * Constructor that initializes the program with an image path.
@@ -35,7 +56,7 @@ public class ProgramRun {
         this.resolution = DEFAULT_RESOLUTION;
         this.subImgCharMatcher = new SubImgCharMatcher(DEFAULT_CHARSET);
         this.asciiOutput = new ConsoleAsciiOutput();
-        this.asciiArtAlgorithm = new AsciiArtAlgorithm(image, resolution, subImgCharMatcher, false);
+        this.isReversed = false;
 
         // Initialize the charset tracking
         this.currentCharset = new HashSet<>();
@@ -67,18 +88,18 @@ public class ProgramRun {
      */
     public void setResolution(int resolution) throws ResolutionOutOfBoundsException {
         // Check if resolution is a power of 2
-        if (resolution <= 0 || (resolution & (resolution - 1)) != 0) {
-            throw new ResolutionOutOfBoundsException("Resolution must be a power of 2");
+        if (resolution <= ZERO || (resolution & (resolution - POWER_OF_TWO_MASK_ADJUSTMENT)) != ZERO) {
+            throw new ResolutionOutOfBoundsException(MSG_RESOLUTION_POWER_OF_TWO);
         }
 
         // Calculate bounds
-        int minResolution = Math.max(1, image.getWidth() / image.getHeight());
+        int minResolution = Math.max(MIN_RESOLUTION_FALLBACK, image.getWidth() / image.getHeight());
         int maxResolution = image.getWidth();
 
         // Check if resolution is within bounds
         if (resolution < minResolution || resolution > maxResolution) {
             throw new ResolutionOutOfBoundsException(
-                "Resolution must be between " + minResolution + " and " + maxResolution);
+                MSG_RESOLUTION_BOUNDS_PREFIX + minResolution + MSG_RESOLUTION_BOUNDS_SEPARATOR + maxResolution);
         }
 
         this.resolution = resolution;
@@ -100,20 +121,23 @@ public class ProgramRun {
         return asciiOutput;
     }
 
-    /**
-     * Sets the ASCII output object.
-     * @param asciiOutput the new ASCII output
-     */
-    public void setAsciiOutput(AsciiOutput asciiOutput) {
-        this.asciiOutput = asciiOutput;
-    }
 
     /**
-     * Gets the AsciiArtAlgorithm object.
-     * @return the ASCII art algorithm
+     * Sets the ASCII output type based on the output type string.
+     * @param outputType "console" for console output or "html" for HTML output
+     * @throws InvalidCommandException if the output type is invalid
      */
-    public AsciiArtAlgorithm getAsciiArtAlgorithm() {
-        return asciiArtAlgorithm;
+    public void setAsciiOutput(String outputType) throws InvalidCommandException {
+        switch (outputType.toLowerCase()) {
+            case OUTPUT_CONSOLE:
+                this.asciiOutput = new ConsoleAsciiOutput();
+                return;
+            case OUTPUT_HTML:
+                this.asciiOutput = new ascii_output.HtmlAsciiOutput(HTML_OUTPUT_FILE, HTML_FONT);
+                return;
+            default:
+                throw new InvalidCommandException(MSG_INVALID_OUTPUT_TYPE);
+        }
     }
 
     /**
@@ -147,10 +171,33 @@ public class ProgramRun {
     }
 
     /**
-     * Runs the ASCII art generation and outputs the result.
+     * Toggles the reverse state.
      */
-    public void run() {
-        char[][] asciiArt = asciiArtAlgorithm.run();
+    public void toggleReverse() {
+        this.isReversed = !this.isReversed;
+    }
+
+    /**
+     * Gets the current reverse state.
+     * @return true if reversed, false otherwise
+     */
+    public boolean isReversed() {
+        return isReversed;
+    }
+
+    /**
+     * Runs the ASCII art generation and outputs the result.
+     * @throws InsufficientCharsException if the charset has fewer than 2 characters
+     */
+    public void run() throws InsufficientCharsException {
+        if (currentCharset.size() < MIN_CHARSET_SIZE) {
+            throw new InsufficientCharsException(MSG_INSUFFICIENT_CHARSET);
+        }
+
+        // Build the algorithm locally with current settings
+        AsciiArtAlgorithm algorithm = new AsciiArtAlgorithm(image, resolution, subImgCharMatcher, isReversed);
+        char[][] asciiArt = algorithm.run();
+
         if (asciiArt != null) {
             asciiOutput.out(asciiArt);
         }

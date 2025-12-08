@@ -44,9 +44,23 @@ public class SubImgCharMatcher {
     public char getCharByImageBrightness(double brightness){
         Map.Entry<Double, TreeSet<Character>> entryCeiling = normalizedCharMap.ceilingEntry(brightness);
         Map.Entry<Double, TreeSet<Character>> entryFloor = normalizedCharMap.floorEntry(brightness);
-        if (brightness-entryFloor.getKey() <= entryCeiling.getKey()-brightness) {
+
+        // Handle edge cases where one or both entries are null
+        if (entryFloor == null && entryCeiling == null) {
+            // Should not happen if map is properly initialized, but handle gracefully
+            return normalizedCharMap.firstEntry().getValue().first();
+        }
+        if (entryFloor == null) {
+            return entryCeiling.getValue().first();
+        }
+        if (entryCeiling == null) {
             return entryFloor.getValue().first();
-        }else {
+        }
+
+        // Both exist, find the closest
+        if (brightness - entryFloor.getKey() <= entryCeiling.getKey() - brightness) {
+            return entryFloor.getValue().first();
+        } else {
             return entryCeiling.getValue().first();
         }
     }
@@ -120,7 +134,12 @@ public class SubImgCharMatcher {
             double rawBrightness = entry.getValue();
             double newCharBrightness;
 
-            newCharBrightness = (rawBrightness - minBrightness) / range;
+            // Handle the case where all characters have the same brightness (range = 0)
+            if (range == 0) {
+                newCharBrightness = 0.0;  // or any fixed value, since all chars are equal
+            } else {
+                newCharBrightness = (rawBrightness - minBrightness) / range;
+            }
             // הכנסת התו לתוך ה-TreeMap החדש:
 
             // א. בדיקה האם כבר קיים TreeSet עבור רמת הבהירות הזו

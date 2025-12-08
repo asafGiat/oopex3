@@ -20,24 +20,23 @@ public class ConvertImageToSubImages {
 
     /**
      * Divides the image into sub-images based on the specified resolution.
-     * The resolution determines the size of each sub-image (resolution x resolution pixels).
-     * The image dimensions must be divisible by the resolution.
+     * The resolution determines how many sub-images to create per row/column.
+     * For example, resolution=2 creates a 2x2 grid (4 sub-images total).
      *
-     * @param resolution The size of each square sub-image (must be a power of 2)
+     * @param resolution The number of sub-images per row/column
      * @return A 2D array of Image objects representing the sub-images
      * @throws IllegalArgumentException if resolution is invalid or doesn't divide the image evenly
      */
     public Image[][] divideIntoSubImages(int resolution) {
         validateResolution(resolution);
 
-        int numRows = image.getHeight() / resolution;
-        int numCols = image.getWidth() / resolution;
+        int subImageSize = image.getHeight() / resolution;  // Size of each sub-image in pixels
 
-        Image[][] subImages = new Image[numRows][numCols];
+        Image[][] subImages = new Image[resolution][resolution];
 
-        for (int row = 0; row < numRows; row++) {
-            for (int col = 0; col < numCols; col++) {
-                subImages[row][col] = extractSubImage(row, col, resolution);
+        for (int row = 0; row < resolution; row++) {
+            for (int col = 0; col < resolution; col++) {
+                subImages[row][col] = extractSubImage(row, col, subImageSize);
             }
         }
 
@@ -67,24 +66,24 @@ public class ConvertImageToSubImages {
 
     /**
      * Extracts a single sub-image from the original image.
-     *-
+     *
      * @param row The row index of the sub-image
      * @param col The column index of the sub-image
-     * @param resolution The size of the sub-image
+     * @param subImageSize The size (in pixels) of the sub-image
      * @return An Image object representing the sub-image
      */
-    private Image extractSubImage(int row, int col, int resolution) {
-        Color[][] subImagePixels = new Color[resolution][resolution];
+    private Image extractSubImage(int row, int col, int subImageSize) {
+        Color[][] subImagePixels = new Color[subImageSize][subImageSize];
 
-        int startRow = row * resolution;
-        int startCol = col * resolution;
+        int startRow = row * subImageSize;
+        int startCol = col * subImageSize;
 
-        for (int i = 0; i < resolution; i++) {
-            for (int j = 0; j < resolution; j++) {
+        for (int i = 0; i < subImageSize; i++) {
+            for (int j = 0; j < subImageSize; j++) {
                 subImagePixels[i][j] = image.getPixel(startRow + i, startCol + j);
             }
         }
 
-        return new Image(subImagePixels, resolution, resolution);
+        return new Image(subImagePixels, subImageSize, subImageSize);
     }
 }

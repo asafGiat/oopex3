@@ -44,7 +44,7 @@ public class AsciiArtAlgorithm {
         HtmlAsciiOutput consoleAsciiOutput = new HtmlAsciiOutput("test.html", "Courier New");
         char [] chars = {'m','o'};
         SubImgCharMatcher charMatcher = new SubImgCharMatcher(chars);
-        Image image1 = new Image("C:/Users/97254/IdeaProjects/oopex3/board.jpeg");
+        Image image1 = new Image("examples/board.jpeg");
         AsciiArtAlgorithm asciiArtAlgorithm = new AsciiArtAlgorithm(image1, 2, charMatcher, false);
         char [][] asciiArt = asciiArtAlgorithm.run();
         consoleAsciiOutput.out(asciiArt);
