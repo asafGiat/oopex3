@@ -61,33 +61,4 @@ public class ImagePrepare {
         ConvertImageToSubImages converter = new ConvertImageToSubImages(paddedImage);
         this.subImages = converter.divideIntoSubImages(resolution);
     }
-
-    /**
-     * Gets the sub-images after preparation.
-     * prepareImage() must be called first.
-     *
-     * @return A 2D array of sub-images, or null if prepareImage() hasn't been called
-     */
-    public Image[][] getSubImages() {
-        return subImages;
-    }
-
-    /**
-     * Gets the padded image.
-     * prepareImage() must be called first.
-     *
-     * @return The padded image, or null if prepareImage() hasn't been called
-     */
-    public Image getPaddedImage() {
-        return paddedImage;
-    }
-
-    /**
-     * Gets the original image.
-     *
-     * @return The original image
-     */
-    public Image getOriginalImage() {
-        return originalImage;
-    }
 }

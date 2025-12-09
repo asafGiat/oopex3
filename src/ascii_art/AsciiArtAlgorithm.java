@@ -41,11 +41,11 @@ public class AsciiArtAlgorithm {
     }
 
     public static void main(String[] args) throws IOException {
-        HtmlAsciiOutput consoleAsciiOutput = new HtmlAsciiOutput("test.html", "Courier New");
+        ConsoleAsciiOutput consoleAsciiOutput = new ConsoleAsciiOutput();
         char [] chars = {'m','o'};
         SubImgCharMatcher charMatcher = new SubImgCharMatcher(chars);
-        Image image1 = new Image("examples/board.jpeg");
-        AsciiArtAlgorithm asciiArtAlgorithm = new AsciiArtAlgorithm(image1, 2, charMatcher, false);
+        Image image1 = new Image("examples/cat.jpeg");
+        AsciiArtAlgorithm asciiArtAlgorithm = new AsciiArtAlgorithm(image1, 128, charMatcher, false);
         char [][] asciiArt = asciiArtAlgorithm.run();
         consoleAsciiOutput.out(asciiArt);
         // Example usage

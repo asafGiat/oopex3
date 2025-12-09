@@ -49,6 +49,8 @@ public class Shell {
     private static final String MSG_CHARS_REMOVED = "Characters removed successfully";
     private static final String MSG_RESOLUTION_SET = "Resolution set to ";
     private static final String MSG_RESOLUTION_BOUNDS_ERROR = "Did not change resolution due to exceeding boundaries.";
+    private static final String MSG_RESOLUTION_SYNTAX_ERROR = "Did not change resolution due to incorrect format." +
+            "boundaries.";
     private static final String MSG_INCORRECT_COMMAND = "Did not execute due to incorrect command.";
     private static final String MSG_ERROR_PREFIX = "Error: ";
     private static final String MSG_INVALID_ARG_FORMAT = "Invalid argument format: ";
@@ -109,7 +111,7 @@ public class Shell {
     public static void main(String[] args) {
         Shell shell = new Shell();
         try {
-            shell.run("/C://Users//asaf//Pictures//images.jpeg/");
+            shell.run("examples/cat.jpeg");
         } catch (IOException e) {
             System.out.println(MSG_SHELL_IO_ERROR + e.getMessage());
         }
@@ -134,6 +136,7 @@ public class Shell {
         for (Map.Entry<String, Function<String, String>> entry : commandMap.entrySet()) {
             if (command.equals(entry.getKey()) || command.startsWith(entry.getKey()+SPACE_SEPARATOR)) {
                 return entry.getValue().apply(command);
+
             }
         }
         return MSG_INCORRECT_COMMAND;
@@ -167,8 +170,7 @@ public class Shell {
             }
             return MSG_CHARS_ADDED;
         } catch (InvalidCommandException e) {
-            return MSG_ERROR_PREFIX + e.getMessage();
-            //throw proper exception;
+            return "Did not add due to incorrect format.";
         }
     }
 
@@ -180,8 +182,7 @@ public class Shell {
             }
             return MSG_CHARS_REMOVED;
         } catch (InvalidCommandException e) {
-            return MSG_ERROR_PREFIX + e.getMessage();
-            //throw proper exception;
+            return "Did not remove due to incorrect format.";
         }
     }
 
@@ -200,7 +201,7 @@ public class Shell {
             } else if (parts[COMMAND_ARG_INDEX].equals(ARG_DOWN)) {
                 run.setResolution(currentRes / RESOLUTION_MULTIPLIER);
             } else {
-                throw new UnsupportedOperationException("Not implemented yet");
+                return MSG_RESOLUTION_SYNTAX_ERROR;
             }
             return message + Integer.toString(run.getResolution());
         }
