@@ -124,11 +124,8 @@ public class SubImgCharMatcher {
     private void rebuildNormalizedMap() {
 
         double range = maxBrightness - minBrightness;
-
-        // 2. אתחול מחדש של ה-TreeMap
         TreeMap<Double, TreeSet<Character>> newNormalizedMap = new TreeMap<>();
 
-        // 3. איטרציה על כל התווים, נירמול והכנסה למפה החדשה
         for (HashMap.Entry<Character, Double> entry : this.brightness.entrySet()) {
             char c = entry.getKey();
             double rawBrightness = entry.getValue();
@@ -140,29 +137,20 @@ public class SubImgCharMatcher {
             } else {
                 newCharBrightness = (rawBrightness - minBrightness) / range;
             }
-            // הכנסת התו לתוך ה-TreeMap החדש:
-
-            // א. בדיקה האם כבר קיים TreeSet עבור רמת הבהירות הזו
             TreeSet<Character> charSet = newNormalizedMap.get(newCharBrightness);
 
             if (charSet == null) {
-                // ב. אם לא קיים, יצירת TreeSet חדש והכנסתו למפה
                 charSet = new TreeSet<>();
                 newNormalizedMap.put(newCharBrightness, charSet);
             }
-
-            // ג. הוספת התו ל-TreeSet
             charSet.add(c);
         }
-
-        // 4. עדכון השדה במחלקה
         this.normalizedCharMap = newNormalizedMap;
     }
 
     public static void main(String[] args) {
         char[] charset = {'A', 'B', 'C', 'D', 'E'};
         SubImgCharMatcher matcher = new SubImgCharMatcher(charset);
-        // הדפסת המפה לנראות
                 matcher.removeChar('C');
         System.out.println("After removing 'C':");
         for (Map.Entry<Double, TreeSet<Character>> entry : matcher.normalizedCharMap.entrySet()) {

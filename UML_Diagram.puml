@@ -1,0 +1,202 @@
+@startuml ASCII_Art_Project
+
+' Package: ascii_art
+package ascii_art {
+    class Shell {
+        - run: ProgramRun
+        - commandMap: Map<String, Function<String, String>>
+        + Shell()
+        + run(imageName: String): void
+        - handleCommand(command: String): String
+        - handleChars(command: String): String
+        - handleAdd(command: String): String
+        - handleRemove(command: String): String
+        - handleRes(command: String): String
+        - handleReverse(command: String): String
+        - handleOutput(command: String): String
+        - handleAsciiArt(command: String): String
+        + main(args: String[]): void
+    }
+
+    class ProgramRun {
+        - image: Image
+        - resolution: int
+        - subImgCharMatcher: SubImgCharMatcher
+        - asciiOutput: AsciiOutput
+        - currentCharset: Set<Character>
+        - isReversed: boolean
+        + ProgramRun(imagePath: String)
+        + getImage(): Image
+        + getResolution(): int
+        + setResolution(resolution: int): void
+        + getSubImgCharMatcher(): SubImgCharMatcher
+        + getAsciiOutput(): AsciiOutput
+        + setAsciiOutput(outputType: String): void
+        + getCharset(): Set<Character>
+        + addChar(c: char): void
+        + removeChar(c: char): void
+        + toggleReverse(): void
+        + run(): void
+    }
+
+    class AsciiArtAlgorithm {
+        - resolution: int
+        - isReversed: boolean
+        - image: Image
+        - subImgCharMatcher: SubImgCharMatcher
+        + AsciiArtAlgorithm(image: Image, resolution: int, charMatcher: SubImgCharMatcher, isReversed: boolean)
+        + run(): char[][]
+        + main(args: String[]): void
+    }
+
+    class KeyboardInput {
+        - {static} keyboardInputObject: KeyboardInput
+        - scanner: Scanner
+        - KeyboardInput()
+        + {static} getObject(): KeyboardInput
+        + {static} readLine(): String
+    }
+
+    class InsufficientCharsException {
+        + InsufficientCharsException(message: String)
+    }
+
+    class InvalidCommandException {
+        + InvalidCommandException(message: String)
+    }
+
+    class ResolutionOutOfBoundsException {
+        + ResolutionOutOfBoundsException(message: String)
+    }
+}
+
+' Package: ascii_output
+package ascii_output {
+    interface AsciiOutput {
+        + out(chars: char[][]): void
+    }
+
+    class ConsoleAsciiOutput {
+        + out(chars: char[][]): void
+    }
+
+    class HtmlAsciiOutput {
+        - fontName: String
+        - filename: String
+        + HtmlAsciiOutput(filename: String, fontName: String)
+        + out(chars: char[][]): void
+    }
+}
+
+' Package: image
+package image {
+    class Image {
+        - pixelArray: Color[][]
+        - width: int
+        - height: int
+        + Image(filename: String)
+        + Image(pixelArray: Color[][], width: int, height: int)
+        + getWidth(): int
+        + getHeight(): int
+        + getPixel(x: int, y: int): Color
+        + saveImage(fileName: String): void
+    }
+
+    class ImagePrepare {
+        - originalImage: Image
+        - paddedImage: Image
+        - subImages: Image[][]
+        + ImagePrepare(image: Image)
+        + prepareImage(resolution: int): Image[][]
+        - padImage(): void
+        - splitIntoSubImages(resolution: int): void
+        + getSubImages(): Image[][]
+        + getPaddedImage(): Image
+    }
+
+    class ConvertImageToSubImages {
+        - image: Image
+        + ConvertImageToSubImages(image: Image)
+        + divideIntoSubImages(resolution: int): Image[][]
+        - validateResolution(resolution: int): void
+        - extractSubImage(row: int, col: int, subImageSize: int): Image
+    }
+
+    class ImagePadder <<utility>> {
+        - ImagePadder()
+        + {static} padToPowerOfTwo(image: Image): Color[][]
+        - {static} nextPowerOfTwo(n: int): int
+        - {static} createPaddedArray(...): Color[][]
+    }
+
+    class ImageBrightnessCalculator <<utility>> {
+        - ImageBrightnessCalculator()
+        + {static} calculateBrightness(image: Image): int
+        - {static} calculateGrayscale(pixel: Color): int
+    }
+}
+
+' Package: image_char_matching
+package image_char_matching {
+    class SubImgCharMatcher {
+        - brightness: HashMap<Character, Double>
+        - normalizedCharMap: TreeMap<Double, TreeSet<Character>>
+        - maxBrightness: double
+        - minBrightness: double
+        + SubImgCharMatcher(charset: char[])
+        + getCharByImageBrightness(brightness: double): char
+        + addChar(c: char): void
+        + removeChar(c: char): void
+        - brightnessCal(boolArray: boolean[][]): double
+        - rebuildNormalizedMap(): void
+    }
+
+    class CharConverter <<utility>> {
+        - CharConverter()
+        + {static} convertToBoolArray(c: char): boolean[][]
+        - {static} getBufferedImage(...): BufferedImage
+    }
+}
+
+' Relationships - ascii_art package
+Shell --> ProgramRun : uses
+Shell ..> InvalidCommandException : throws
+ProgramRun --> Image : has
+ProgramRun --> SubImgCharMatcher : has
+ProgramRun --> AsciiOutput : has
+ProgramRun ..> InvalidCommandException : throws
+ProgramRun ..> ResolutionOutOfBoundsException : throws
+ProgramRun ..> InsufficientCharsException : throws
+AsciiArtAlgorithm --> Image : uses
+AsciiArtAlgorithm --> SubImgCharMatcher : uses
+AsciiArtAlgorithm --> ImagePrepare : uses
+AsciiArtAlgorithm --> ImageBrightnessCalculator : uses
+Shell --> KeyboardInput : uses
+
+' Relationships - ascii_output package
+ConsoleAsciiOutput ..|> AsciiOutput : implements
+HtmlAsciiOutput ..|> AsciiOutput : implements
+
+' Relationships - image package
+ImagePrepare --> Image : uses
+ImagePrepare --> ImagePadder : uses
+ImagePrepare --> ConvertImageToSubImages : uses
+ConvertImageToSubImages --> Image : uses
+ImagePadder --> Image : uses
+ImageBrightnessCalculator --> Image : uses
+
+' Relationships - image_char_matching package
+SubImgCharMatcher --> CharConverter : uses
+
+' Cross-package relationships
+ProgramRun --> ImageBrightnessCalculator : uses
+AsciiArtAlgorithm --> ConsoleAsciiOutput : uses (in main)
+AsciiArtAlgorithm --> HtmlAsciiOutput : uses (in main)
+
+' Exception hierarchy
+InsufficientCharsException --|> Exception
+InvalidCommandException --|> Exception
+ResolutionOutOfBoundsException --|> Exception
+
+@enduml
+
