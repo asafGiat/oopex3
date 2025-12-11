@@ -13,6 +13,7 @@ public class ImageBrightnessCalculator {
     private static final double RED_WEIGHT = 0.2126;
     private static final double GREEN_WEIGHT = 0.7152;
     private static final double BLUE_WEIGHT = 0.0722;
+    private static final double MAX_GRAYSCALE = 255.0;
 
     /**
      * Private constructor to prevent instantiation of this utility class.
@@ -46,7 +47,7 @@ public class ImageBrightnessCalculator {
                 totalBrightness += grayscale;
             }
         }
-        return (double) (totalBrightness / ((long) width * height)) /255;
+        return (double) (totalBrightness / ((long) width * height)) /MAX_GRAYSCALE;
     }
 
     /**
