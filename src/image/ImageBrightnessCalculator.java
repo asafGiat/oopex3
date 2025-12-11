@@ -30,7 +30,7 @@ public class ImageBrightnessCalculator {
      * @return The brightness value as an integer (0-255)
      * @throws IllegalArgumentException if image is null
      */
-    public static int calculateBrightness(Image image) {
+    public static double calculateBrightness(Image image) {
         if (image == null) {
             throw new IllegalArgumentException("Image cannot be null");
         }
@@ -46,7 +46,7 @@ public class ImageBrightnessCalculator {
                 totalBrightness += grayscale;
             }
         }
-        return (int) (totalBrightness / (width * height));
+        return (double) (totalBrightness / ((long) width * height)) /255;
     }
 
     /**

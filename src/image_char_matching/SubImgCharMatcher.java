@@ -149,7 +149,7 @@ public class SubImgCharMatcher {
     }
 
     public static void main(String[] args) {
-        char[] charset = {'A', 'B', 'C', 'D', 'E'};
+        char[] charset = {'A', 'B', 'D', 'E'};
         SubImgCharMatcher matcher = new SubImgCharMatcher(charset);
                 matcher.removeChar('C');
         System.out.println("After removing 'C':");
