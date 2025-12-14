@@ -58,8 +58,7 @@ public class Shell {
     private static final String MSG_RESOLUTION_BOUNDS_ERROR = "Did not change resolution due to exceeding " +
             "boundaries.";
     private static final String MSG_RESOLUTION_SYNTAX_ERROR = "Did not change resolution due to incorrect " +
-            "format." +
-            "boundaries.";
+            "format.";
     private static final String MSG_INCORRECT_COMMAND = "Did not execute due to incorrect command.";
     private static final String MSG_ERROR_PREFIX = "Error: ";
     private static final String MSG_INVALID_ARG_FORMAT = "Invalid argument format: ";
