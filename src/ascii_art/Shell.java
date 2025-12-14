@@ -8,6 +8,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+/**
+ * Interactive command-line shell for the ASCII art application.
+ * Parses user commands (chars, add, remove, res, reverse, output, asciiArt, exit),
+ * delegates execution to {@link ProgramRun}, and presents user-friendly feedback.
+ * Use {@link #run(String)} to start a session with a specific image.
+ */
 public class Shell {
     // Command names
     private static final String CMD_CHARS = "chars";
@@ -44,12 +50,15 @@ public class Shell {
 
     // Messages
     private static final String MSG_INSUFFICIENT_CHARS = "Did not execute. Charset is too small.";
-    private static final String MSG_OUTPUT_FORMAT_ERROR = "Did not change output method due to incorrect format.";
+    private static final String MSG_OUTPUT_FORMAT_ERROR = "Did not change output method due to incorrect " +
+            "format.";
     private static final String MSG_CHARS_ADDED = "Characters added successfully";
     private static final String MSG_CHARS_REMOVED = "Characters removed successfully";
     private static final String MSG_RESOLUTION_SET = "Resolution set to ";
-    private static final String MSG_RESOLUTION_BOUNDS_ERROR = "Did not change resolution due to exceeding boundaries.";
-    private static final String MSG_RESOLUTION_SYNTAX_ERROR = "Did not change resolution due to incorrect format." +
+    private static final String MSG_RESOLUTION_BOUNDS_ERROR = "Did not change resolution due to exceeding " +
+            "boundaries.";
+    private static final String MSG_RESOLUTION_SYNTAX_ERROR = "Did not change resolution due to incorrect " +
+            "format." +
             "boundaries.";
     private static final String MSG_INCORRECT_COMMAND = "Did not execute due to incorrect command.";
     private static final String MSG_ERROR_PREFIX = "Error: ";
@@ -80,8 +89,7 @@ public class Shell {
         try {
             run.run();
             return MSG_EMPTY;
-        }
-        catch (InsufficientCharsException e) {
+        } catch (InsufficientCharsException e) {
             return MSG_INSUFFICIENT_CHARS;
         }
     }
@@ -102,28 +110,51 @@ public class Shell {
         return MSG_EMPTY;
     }
 
+    /**
+     * Creates a new Shell instance with no preloaded charset.
+     * Use {@link #run(String)} to start interacting with a given image.
+     */
     public Shell() {
     }
 
+    /**
+     * Creates a new Shell instance with an initial character matrix.
+     *
+     * @param chars initial charset as a 2D array (not currently used to seed ProgramRun)
+     */
     public Shell(char[][] chars) {
     }
 
+    /**
+     * Entry point: starts the interactive shell on an example image.
+     * Provides a prompt and accepts commands until "exit".
+     *
+     * @param args unused
+     */
     public static void main(String[] args) {
         Shell shell = new Shell();
         try {
-            shell.run("examples/harel.png");
+            shell.run(args[0]);
         } catch (IOException e) {
             System.out.println(MSG_SHELL_IO_ERROR + e.getMessage());
         }
     }
 
+    /**
+     * Runs the interactive command loop for a specific image.
+     * Initializes the program, prints a prompt, reads and executes commands,
+     * and continues until the user types "exit".
+     *
+     * @param imageName path to the image file to load
+     * @throws IOException if the image cannot be loaded from disk
+     */
     public void run(String imageName) throws IOException {
         this.run = new ProgramRun(imageName);
         System.out.print(MSG_PROMPT);
         String command = KeyboardInput.readLine();
-        while (!command.startsWith(CMD_EXIT+SPACE_SEPARATOR) && !command.equals(CMD_EXIT)) {
+        while (!command.startsWith(CMD_EXIT + SPACE_SEPARATOR) && !command.equals(CMD_EXIT)) {
             String response = new String(handleCommand(command));
-            if(!response.isEmpty()) {
+            if (!response.isEmpty()) {
                 System.out.println(response);
             }
             System.out.print(MSG_PROMPT);
@@ -192,7 +223,7 @@ public class Shell {
         int currentRes = run.getResolution();
         final String message = MSG_RESOLUTION_SET;
         String[] parts = null;
-        try{
+        try {
             parts = parseCommand(command);
         } catch (InvalidCommandException e) {
             return message + Integer.toString(currentRes);
@@ -206,9 +237,7 @@ public class Shell {
                 return MSG_RESOLUTION_SYNTAX_ERROR;
             }
             return message + Integer.toString(run.getResolution());
-        }
-        catch (ResolutionOutOfBoundsException e)
-        {
+        } catch (ResolutionOutOfBoundsException e) {
             return MSG_RESOLUTION_BOUNDS_ERROR;
         }
     }
@@ -251,7 +280,8 @@ public class Shell {
         }
 
         // Handle range format "x-y"
-        if (argument.length() == RANGE_FORMAT_LENGTH && argument.charAt(RANGE_SEPARATOR_INDEX) == RANGE_SEPARATOR) {
+        if (argument.length() == RANGE_FORMAT_LENGTH && argument.charAt(RANGE_SEPARATOR_INDEX) ==
+                RANGE_SEPARATOR) {
             char start = argument.charAt(RANGE_START_INDEX);
             char end = argument.charAt(RANGE_END_INDEX);
 

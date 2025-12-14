@@ -10,12 +10,26 @@ import image_char_matching.SubImgCharMatcher;
 import java.awt.*;
 import java.io.IOException;
 
+/**
+ * The core ASCII art generation algorithm. It prepares the input image,
+ * computes brightness per sub-image, and selects the best matching character
+ * for each tile using a SubImgCharMatcher. Optionally supports reverse mapping
+ * of brightness to characters.
+ */
 public class AsciiArtAlgorithm {
     private final int resolution;
     private final boolean isReversed;
     private Image image;
     private SubImgCharMatcher subImgCharMatcher;
 
+    /**
+     * Constructs a new ASCII art algorithm instance.
+     *
+     * @param image the source {@link image.Image} to convert to ASCII art
+     * @param resolution the number of tiles per dimension (must evenly divide padded image)
+     * @param charMatcher the matcher that maps brightness values to characters
+     * @param isReversed if true, invert brightness mapping (dark→light and vice versa)
+     */
     public AsciiArtAlgorithm(Image image, int resolution, SubImgCharMatcher charMatcher,
                              boolean isReversed) {
         this.subImgCharMatcher = charMatcher;
@@ -25,6 +39,13 @@ public class AsciiArtAlgorithm {
 
     }
 
+    /**
+     * Executes the algorithm: pads and splits the image into tiles, computes brightness
+     * per tile, and selects a character for each position using the provided matcher.
+     *
+     * @return a 2D character grid representing the ASCII art
+     * @throws IllegalArgumentException if resolution is invalid for the prepared image
+     */
     public char [][] run(){
         ImagePrepare imagePrepare = new ImagePrepare(image);
         Image[][] subImages = imagePrepare.prepareImage(resolution);
@@ -44,17 +65,5 @@ public class AsciiArtAlgorithm {
             }
         }
         return asciiArt;
-    }
-
-    public static void main(String[] args) throws IOException {
-        HtmlAsciiOutput consoleAsciiOutput = new HtmlAsciiOutput("test.html", "Courier New");
-//        ConsoleAsciiOutput consoleAsciiOutput = new ConsoleAsciiOutput();
-        char [] chars = {'0','1','2','3','4','5','6','7','8','9'};
-        SubImgCharMatcher charMatcher = new SubImgCharMatcher(chars);
-        Image image1 = new Image("cat.jpeg");
-        AsciiArtAlgorithm asciiArtAlgorithm = new AsciiArtAlgorithm(image1, 128, charMatcher, false);
-        char [][] asciiArt = asciiArtAlgorithm.run();
-        consoleAsciiOutput.out(asciiArt);
-        // Example usage
     }
 }

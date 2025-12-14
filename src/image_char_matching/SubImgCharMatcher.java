@@ -148,20 +148,4 @@ public class SubImgCharMatcher {
         this.normalizedCharMap = newNormalizedMap;
     }
 
-    public static void main(String[] args) {
-        char[] charset = {'A', 'B', 'D', 'E'};
-        SubImgCharMatcher matcher = new SubImgCharMatcher(charset);
-                matcher.removeChar('C');
-        System.out.println("After removing 'C':");
-        for (Map.Entry<Double, TreeSet<Character>> entry : matcher.normalizedCharMap.entrySet()) {
-            System.out.println("Brightness: " + entry.getKey() + " Characters: " + entry.getValue());
-        }
-        System.out.println(matcher.getCharByImageBrightness(0.7));
-        matcher.addChar('C');
-        System.out.println("After adding 'C':");
-        for (Map.Entry<Double, TreeSet<Character>> entry : matcher.normalizedCharMap.entrySet()) {
-            System.out.println("Brightness: " + entry.getKey() + " Characters: " + entry.getValue());
-        }
-        System.out.println(matcher.getCharByImageBrightness(0.7));
-    }
 }

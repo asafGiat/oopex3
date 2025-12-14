@@ -31,7 +31,8 @@ public class ImagePrepare {
      *
      * @param resolution The resolution for dividing the image into sub-images
      * @return A 2D array of sub-images
-     * @throws IllegalArgumentException if resolution is invalid or doesn't divide the padded dimensions evenly
+     * @throws IllegalArgumentException if resolution is invalid or doesn't divide the padded dimensions
+     * evenly
      */
     public Image[][] prepareImage(int resolution) {
         if (resolution <= 0) {

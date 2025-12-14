@@ -36,7 +36,8 @@ public class ProgramRun {
     private static final String MSG_RESOLUTION_POWER_OF_TWO = "Resolution must be a power of 2";
     private static final String MSG_RESOLUTION_BOUNDS_PREFIX = "Resolution must be between ";
     private static final String MSG_RESOLUTION_BOUNDS_SEPARATOR = " and ";
-    private static final String MSG_INSUFFICIENT_CHARSET = "Cannot generate ASCII art with fewer than 2 characters in the charset";
+    private static final String MSG_INSUFFICIENT_CHARSET = "Cannot generate ASCII art with fewer than 2 " +
+            "characters in the charset";
     private static final String MSG_INVALID_OUTPUT_TYPE = "";
 
     private final Image image;
@@ -48,6 +49,7 @@ public class ProgramRun {
 
     /**
      * Constructor that initializes the program with an image path.
+     *
      * @param imagePath the path to the image file to convert to ASCII art
      * @throws IOException if the image file cannot be read
      */
@@ -67,6 +69,7 @@ public class ProgramRun {
 
     /**
      * Gets the image object.
+     *
      * @return the image
      */
     public Image getImage() {
@@ -75,6 +78,7 @@ public class ProgramRun {
 
     /**
      * Gets the current resolution.
+     *
      * @return the resolution
      */
     public int getResolution() {
@@ -83,6 +87,7 @@ public class ProgramRun {
 
     /**
      * Sets the resolution.
+     *
      * @param resolution the new resolution
      * @throws ResolutionOutOfBoundsException if resolution is not a power of 2 or out of bounds
      */
@@ -99,7 +104,8 @@ public class ProgramRun {
         // Check if resolution is within bounds
         if (resolution < minResolution || resolution > maxResolution) {
             throw new ResolutionOutOfBoundsException(
-                MSG_RESOLUTION_BOUNDS_PREFIX + minResolution + MSG_RESOLUTION_BOUNDS_SEPARATOR + maxResolution);
+                    MSG_RESOLUTION_BOUNDS_PREFIX + minResolution + MSG_RESOLUTION_BOUNDS_SEPARATOR +
+                            maxResolution);
         }
 
         this.resolution = resolution;
@@ -107,6 +113,7 @@ public class ProgramRun {
 
     /**
      * Gets the SubImgCharMatcher.
+     *
      * @return the character matcher
      */
     public SubImgCharMatcher getSubImgCharMatcher() {
@@ -115,6 +122,7 @@ public class ProgramRun {
 
     /**
      * Gets the ASCII output object.
+     *
      * @return the ASCII output
      */
     public AsciiOutput getAsciiOutput() {
@@ -124,6 +132,7 @@ public class ProgramRun {
 
     /**
      * Sets the ASCII output type based on the output type string.
+     *
      * @param outputType "console" for console output or "html" for HTML output
      * @throws InvalidCommandException if the output type is invalid
      */
@@ -142,6 +151,7 @@ public class ProgramRun {
 
     /**
      * Gets the current charset.
+     *
      * @return a Set containing all characters currently in use
      */
     public Set<Character> getCharset() {
@@ -150,6 +160,7 @@ public class ProgramRun {
 
     /**
      * Adds a character to the charset and updates the character map accordingly.
+     *
      * @param c the character to add
      */
     public void addChar(char c) {
@@ -161,6 +172,7 @@ public class ProgramRun {
 
     /**
      * Removes a character from the charset and updates the character map accordingly.
+     *
      * @param c the character to remove
      */
     public void removeChar(char c) {
@@ -179,6 +191,7 @@ public class ProgramRun {
 
     /**
      * Gets the current reverse state.
+     *
      * @return true if reversed, false otherwise
      */
     public boolean isReversed() {
@@ -187,6 +200,7 @@ public class ProgramRun {
 
     /**
      * Runs the ASCII art generation and outputs the result.
+     *
      * @throws InsufficientCharsException if the charset has fewer than 2 characters
      */
     public void run() throws InsufficientCharsException {
