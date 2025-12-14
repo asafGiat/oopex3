@@ -1,4 +1,119 @@
-asaf.giat,
-233896309,
+asaf.giat,rlvizen
+233896309,319132494
 
-1.
+1. Brief explanation of classes and their relations:
+- ascii_art:
+  - Shell: CLI that reads user commands, delegates actions to ProgramRun (manage charset, resolution, output, reverse, and run). Parses commands like chars/add/remove/res/reverse/output/asciiArt.
+  - ProgramRun (facade): Orchestrator holding the current Image, resolution, SubImgCharMatcher, output target (AsciiOutput), charset, and reverse flag. Validates state and triggers AsciiArtAlgorithm to generate the art, then outputs it.
+  - AsciiArtAlgorithm: Core algorithm. Prepares the Image via ImagePrepare, splits to sub-images, computes each sub-image brightness with ImageBrightnessCalculator, and picks a matching char using SubImgCharMatcher. Honors reverse to invert brightness mapping.
+  - KeyboardInput: Singleton utility for reading trimmed lines from stdin.
+  - InsufficientCharsException, ResolutionOutOfBoundsException, InvalidCommandException: Custom exceptions for too-small charset, invalid resolution bounds, and bad command formats.
+
+- image:
+  - Image: Immutable wrapper over a 2D Color array with width/height; loads from file and allows pixel access (and saving). Used everywhere as the image data model.
+  - ImagePrepare: Workflow helper that pads an Image to power-of-two dimensions (via ImagePadder) and then divides it into sub-images (via ConvertImageToSubImages) for a given resolution.
+  - ImagePadder: Utility to center the original Image in a new power-of-two-sized white-padded Color[][].
+  - ConvertImageToSubImages: Splits a padded Image into a resolution×resolution grid of Image tiles.
+  - ImageBrightnessCalculator: Utility to compute normalized brightness [0..1] for an Image using weighted RGB to grayscale.
+
+- image_char_matching:
+  - CharConverter: Renders a character using Courier New to a boolean 16×16 bitmap for brightness estimation.
+  - SubImgCharMatcher: Maintains brightness per character and a normalized map (TreeMap<Double -> TreeSet<Character>>). Supports add/remove characters and returns the closest-match char for a given brightness.
+
+- ascii_output:
+  - AsciiOutput: Interface for outputting char[][].
+  - ConsoleAsciiOutput: Prints the matrix to stdout.
+  - HtmlAsciiOutput: Writes the matrix to an HTML file with safe escaping and monospace formatting.
+
+Relations (flow):
+- Shell parses commands and calls ProgramRun.
+- ProgramRun owns Image, SubImgCharMatcher, AsciiOutput, resolution, charset, and reverse flag.
+- When running: ProgramRun builds AsciiArtAlgorithm(image, resolution, matcher, reverse).
+- AsciiArtAlgorithm uses ImagePrepare → ImagePadder and ConvertImageToSubImages, then ImageBrightnessCalculator on each tile, and asks SubImgCharMatcher for the character.
+- The resulting char[][] is sent to the configured AsciiOutput (console or HTML).
+- Char set changes in ProgramRun propagate to SubImgCharMatcher via addChar/removeChar.
+- Errors: Shell catches InvalidCommandException and InsufficientCharsException; ProgramRun throws InsufficientCharsException and validates resolution via ResolutionOutOfBoundsException.
+
+2. Data structures used: rationale, complexity, and memory
+- Primitive and matrix structures:
+  - char[][]: The ASCII art canvas. Dense 2D matrix is optimal for random access writes and sequential output. Access O(1) per cell; memory O(rows×cols) bytes (char ~2 bytes in Java). Simpler and cache-friendly.
+  - boolean[][]: 16×16 bitmaps for character rendering in CharConverter. Fast pixel counting; access O(1); memory O(16×16) booleans per char (implementation-dependent, but conceptually 1 bit; practically ~1 byte or JVM boolean array overhead). Small fixed footprint.
+  - Color[][]: Image pixels. Dense 2D array allows O(1) pixel reads and efficient row-wise processing; memory O(width×height) objects references plus Color objects; chosen for simplicity and clarity in image ops.
+  - Image[][]: Sub-image grid produced by ImagePrepare/ConvertImageToSubImages. Grid indexing gives O(1) access to tiles; memory proportional to number of tiles (resolution^2) plus each tile’s Color[][].
+
+- Collections for command and charset management:
+  - Set<Character> (HashSet): Tracks current charset in ProgramRun. O(1) average add/remove/contains, avoiding duplicates; memory O(n) for n characters. Ideal for frequent membership checks and updates.
+  - TreeSet<Character>: Used in Shell to present sorted charset. Maintains natural ASCII order with O(log n) insert/remove and O(n) iteration in sorted order; avoids extra sort step.
+  - Map<String, Function<String,String>> (HashMap): Command dispatch table in Shell. O(1) average lookup by command name; memory O(k) for k commands. Clean, extensible command routing.
+
+- Brightness mapping structures:
+  - HashMap<Character, Double>: Per-character raw brightness cache in SubImgCharMatcher. O(1) average lookup during rebuilds; memory O(n) for n chars. Avoids recomputation.
+  - TreeMap<Double, TreeSet<Character>>: Normalized brightness→characters index. Sorted keys support ceilingEntry/floorEntry in O(log m) to find nearest brightness (m distinct brightness levels). TreeSet groups chars with identical normalized brightness, providing deterministic first() selection and O(log t) maintenance. This yields fast nearest-neighbor queries without scanning all chars. Memory O(m + total chars) with TreeMap/TreeSet overhead; acceptable for small-to-medium charsets.
+
+- Strings and buffers:
+  - StringBuilder: Used to assemble outputs like the space-separated charset. Amortized O(n) append with minimal allocation compared to string concatenation; memory grows linearly with output size.
+
+Why these choices
+- Arrays (char[][], boolean[][], Color[][]):
+  - Constant-time indexed access, tight loops, and predictable memory layout are perfect for image and grid operations. Alternatives like lists introduce pointer chasing and overhead with no benefit for fixed-size grids.
+- HashSet/HashMap:
+  - Provide O(1) average operations for dynamic charset management and caching, outperforming Tree* structures where sorted order isn’t needed. They minimize CPU cost during frequent user-driven updates.
+- TreeSet/TreeMap:
+  - Provide sorted order and range queries. Specifically, TreeMap enables ceiling/floor lookup to find the closest brightness in O(log m), avoiding O(m) linear scans or building custom search structures. Combining TreeMap with TreeSet preserves grouping for equal brightness values.
+- StringBuilder:
+  - Efficient concatenation for CLI outputs without quadratic-time behavior of naive string +.
+
+Complexity highlights
+- Generating ASCII art per run:
+  - Image preparation: padding O(W×H); splitting into tiles O(W×H) to copy pixels; brightness per tile O(tile_area); total brightness O(W×H).
+  - Character selection: for each tile, nearest brightness lookup via TreeMap is O(log m); total O(T × log m) where T is number of tiles (resolution^2) and m brightness keys.
+  - Output: console or HTML emits O(T) characters.
+- Command operations:
+  - Add/remove char: HashSet O(1) average, map rebuild triggers TreeMap regeneration O(n) over current charset; acceptable given infrequent updates vs. per-tile queries.
+  - Listing chars: TreeSet iteration O(n) in sorted order.
+
+Memory considerations
+- Image storage dominates: O(W×H) Colors; padding increases to nearest power-of-two but simplifies splitting and avoids edge cases.
+- Sub-images duplicate pixel arrays for clarity; could be optimized via views to reduce memory, but current approach keeps code simple.
+- Brightness indices: O(n) for raw brightness cache + O(m + n) for normalized TreeMap/TreeSet; typically small compared to image data.
+- ASCII output matrix: O(T) chars; negligible vs. image pixels.
+
+Trade-offs summary
+- We favor predictable O(1) grid access and simple loops for image work, and sorted maps for fast nearest-brightness queries. Hash-based sets/maps keep CLI interactions snappy. The slight extra memory in padding and sub-image copies buys simpler, safer algorithms and clean interfaces, which is appropriate for an educational project scale.
+
+3. Exception-based error handling:
+- Custom exceptions:
+  - InvalidCommandException (ascii_art): Thrown by Shell’s parse/argument helpers and by ProgramRun.setAsciiOutput when the output type is unknown. Signals malformed user input or unsupported options. Shell catches it and prints a friendly, specific message (e.g., incorrect format).
+  - InsufficientCharsException (ascii_art): Thrown by ProgramRun.run when the charset size is below the minimum (fewer than 2 chars). Shell catches it and shows “Did not execute. Charset is too small.” preventing meaningless output.
+  - ResolutionOutOfBoundsException (ascii_art): Thrown by ProgramRun.setResolution on non–power-of-two values or values outside image-derived bounds. Shell handles it in the res command and reports either bounds exceeded or incorrect format.
+
+- Standard exceptions and handling:
+  - IOException (java.io): Occurs when loading the image or writing HTML. Shell.run wraps ProgramRun setup and reports IO errors via a generic message; HtmlAsciiOutput logs failures to write the output file.
+  - IllegalArgumentException: Used in image utilities (ImagePrepare, ImagePadder, ConvertImageToSubImages, ImageBrightnessCalculator) to guard against nulls, non-positive resolution, or uneven splits. These are programmer/flow errors that fail fast with clear messages.
+
+- Where they’re thrown:
+  - Shell:
+    - parseCommand and getCharsSetFromCommand may throw InvalidCommandException on syntax issues (too few parts, bad range, unknown token).
+  - ProgramRun:
+    - setAsciiOutput may throw InvalidCommandException on unknown output type.
+    - setResolution may throw ResolutionOutOfBoundsException for bad values.
+    - run may throw InsufficientCharsException if charset < 2.
+  - Image pipeline:
+    - Image constructor throws IOException on file load errors.
+    - ImagePrepare/Padder/ConvertImageToSubImages/BrightnessCalculator throw IllegalArgumentException on invalid inputs.
+  - HtmlAsciiOutput:
+    - out catches IOException internally and logs a severe message; the program continues without crashing.
+
+- Where they’re caught and user feedback:
+  - Shell.run command loop:
+    - asciiArt: catches InsufficientCharsException and prints a clear user message.
+    - output: catches InvalidCommandException and reports incorrect output format.
+    - res: distinguishes between syntax errors, bounds errors, and reports the current or new resolution accordingly.
+    - General IO: main catches IOException at startup and prints a readable failure message.
+  - HtmlAsciiOutput: logs failures, keeping CLI responsive.
+
+- Benefits of this design:
+  - Clear separation of concerns: business logic throws precise exceptions; the Shell translates them to user-friendly messages.
+  - Robustness: invalid states (bad resolution, tiny charset, malformed commands) are detected early and do not crash the app.
+  - Maintainability: adding new commands or outputs can reuse the same exception semantics; messages are centralized in Shell.
+  - UX: users receive actionable feedback (what was wrong, what remains unchanged), and the prompt continues to accept commands.

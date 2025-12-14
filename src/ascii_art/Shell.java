@@ -133,11 +133,13 @@ public class Shell {
     }
 
     private String handleCommand(String command) {
-        for (Map.Entry<String, Function<String, String>> entry : commandMap.entrySet()) {
-            if (command.equals(entry.getKey()) || command.startsWith(entry.getKey()+SPACE_SEPARATOR)) {
-                return entry.getValue().apply(command);
-
-            }
+        // Parse leading token as command name and look up directly
+        String trimmed = command.trim();
+        int spaceIdx = trimmed.indexOf(' ');
+        String cmdName = (spaceIdx == -1) ? trimmed : trimmed.substring(0, spaceIdx);
+        Function<String, String> handler = commandMap.get(cmdName);
+        if (handler != null) {
+            return handler.apply(command);
         }
         return MSG_INCORRECT_COMMAND;
     }
