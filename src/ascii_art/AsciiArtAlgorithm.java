@@ -52,7 +52,7 @@ public class AsciiArtAlgorithm {
         char [] chars = {'0','1','2','3','4','5','6','7','8','9'};
         SubImgCharMatcher charMatcher = new SubImgCharMatcher(chars);
         Image image1 = new Image("cat.jpeg");
-        AsciiArtAlgorithm asciiArtAlgorithm = new AsciiArtAlgorithm(image1, 128, charMatcher, true);
+        AsciiArtAlgorithm asciiArtAlgorithm = new AsciiArtAlgorithm(image1, 128, charMatcher, false);
         char [][] asciiArt = asciiArtAlgorithm.run();
         consoleAsciiOutput.out(asciiArt);
         // Example usage

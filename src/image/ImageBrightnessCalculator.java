@@ -38,16 +38,16 @@ public class ImageBrightnessCalculator {
 
         int width = image.getWidth();
         int height = image.getHeight();
-        long totalBrightness = 0;
+        double totalBrightness = 0;
 
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 Color pixel = image.getPixel(i, j);
-                int grayscale = calculateGrayscale(pixel);
+                double grayscale = calculateGrayscale(pixel);
                 totalBrightness += grayscale;
             }
         }
-        return (double) (totalBrightness / ((long) width * height)) /MAX_GRAYSCALE;
+        return (double) (totalBrightness / ((double) width * height)) /MAX_GRAYSCALE;
     }
 
     /**
@@ -57,7 +57,8 @@ public class ImageBrightnessCalculator {
      * @param color The color to convert to grayscale
      * @return The grayscale value (0-255)
      */
-    private static int calculateGrayscale(Color color) {
-        return (int) (color.getRed() * RED_WEIGHT + color.getGreen() * GREEN_WEIGHT  + color.getBlue() * BLUE_WEIGHT);
+    private static double calculateGrayscale(Color color) {
+        return (color.getRed() * RED_WEIGHT + color.getGreen()
+                * GREEN_WEIGHT  + color.getBlue() * BLUE_WEIGHT);
     }
 }
