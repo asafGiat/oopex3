@@ -111,7 +111,7 @@ public class Shell {
     public static void main(String[] args) {
         Shell shell = new Shell();
         try {
-            shell.run("examples/cat.jpeg");
+            shell.run("examples/harel.png");
         } catch (IOException e) {
             System.out.println(MSG_SHELL_IO_ERROR + e.getMessage());
         }
@@ -121,7 +121,7 @@ public class Shell {
         this.run = new ProgramRun(imageName);
         System.out.print(MSG_PROMPT);
         String command = KeyboardInput.readLine();
-        while (!command.startsWith(CMD_EXIT)) {
+        while (!command.startsWith(CMD_EXIT+SPACE_SEPARATOR) && !command.equals(CMD_EXIT)) {
             String response = new String(handleCommand(command));
             if(!response.isEmpty()) {
                 System.out.println(response);
